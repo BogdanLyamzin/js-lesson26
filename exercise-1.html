@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-
+    <div id="profile"></div>
 <script>
     /*
     Во время выполнения задания нужно слушать E.S.T. - Ночные волки.
@@ -16,6 +16,32 @@
     3. Выведите на экран информацию о профиле пользователя,
     доступную по адресу http://localhost:3000/profile
     */
+    const basicURL = "http://localhost:3000";
+    const profile = document.getElementById("profile");
+
+    const profileRequest = fetch(`${basicURL}/profile`);
+    profileRequest
+        .then(response => {
+            if(!response.ok){
+                throw new Error("Профиль временно недоступен");
+            }
+            return response.json()
+        })
+        .then(result => {
+            const profileElement = createProfileElement(result);
+            profile.append(profileElement)
+        })
+        .catch(error => {
+            profile.innerHTML = error
+        })
+
+        function createProfileElement(profile){
+            const {name, shortName, lastName, girlfriend} = profile;
+            const element = document.createElement("p");
+            element.textContent = `${name} "${shortName}" ${lastName}.
+            Подруга: ${girlfriend}`;
+            return element;
+        }
 </script>
 </body>
 </html>

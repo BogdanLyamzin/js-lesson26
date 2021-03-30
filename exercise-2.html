@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 30px
+        }
+
+        .product-card {
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+        }
+
+
+    </style>
+</head>
+<body>
+<div id="product-list" class="product-list"></div>
+<script>
+    /*
+    Во время выполнения задания нужно слушать Провокация - Ночные волки
+
+    1. Выведите список товаров в виде карточек на экран.
+    Товары можно получить по адресу http://localhost:3000/products
+    В карточке должно отображаться изображение (поле img) и
+    название (поле Title).
+    2. При клике на карточку в ней должна отображаться дополнительная информация:
+    - Maker;
+    - Description
+    */
+    const basicURL = "http://localhost:3000";
+   const productList = document.getElementById("product-list");
+
+   const productsRequest = fetch(`${basicURL}/products`);
+
+   productsRequest
+    .then(response => {
+        if(!response.ok){
+            throw new Error("Список товаров временно недоступен")
+        }
+        return response.json()
+    })
+    .then(result => {
+        const productElements = result.map(product => {
+            const {img, Title, id} = product;
+            const productCard = createProductCard({img, Title});
+            productCard.addEventListener("click", function(e){
+                e.preventDefault();
+                showAdditionalInfo(this, id)
+            })
+            return productCard;
+        }) 
+        productList.append(...productElements);
+    })
+    .catch(error => productList.innerHTML = error);
+
+    function createProductCard({img, Title}){        
+        const card = document.createElement("div");
+        card.classList.add("product-card");
+        const cardContent = `<img src="${img}" class="img-fluid" /> <p>${Title}</p>`
+        card.insertAdjacentHTML("beforeend", cardContent);
+        return card;
+    }
+
+    function showAdditionalInfo(elem, id){
+        const productInfo = elem.querySelector(".product-info");
+        if(productInfo) {
+            productInfo.remove()
+        }
+        else {
+            const productRequest = fetch(`${basicURL}/products/${id}`);
+            productRequest
+                .then(response => {
+                    if(!response.ok){
+                        throw new Error("Подробная информация временно недоступна")
+                    }
+                    return response.json()
+                })
+                .then(result => {
+                    const {Maker, Description} = result;
+                    const productAddInfo = `<div class="product-info"><p>Прозводитель: ${result.Maker}</p>
+                                            <p>${result.Description}</p></div>`;
+                    elem.insertAdjacentHTML("beforeend", productAddInfo)
+                })
+                .catch(error => elem.insertAdjacentHTML("beforeend", error))
+        }
+
+    }
+</script>
+</body>
+</html>

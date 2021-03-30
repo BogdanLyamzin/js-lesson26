@@ -3,9 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+         .img-fluid {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .product-list-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 30px
+        }
+
+        .product-card {
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+        }
+
+        .product-list-nav {
+            display: flex;
+            justify-content: center;
+        }
+
+        .product-list-nav-item {
+            text-decoration: none;
+            color: blue;
+            font-size: 24px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 0 30px;
+            border: 1px solid blue;
+        }
+
+        .product-list-nav-item.active {
+            color: white;
+            background-color: blue;
+        }
+    </style>
 </head>
 <body>
-<div id="product-list"></div>
+<div id="product-list" class="product-list">
+    <div class="product-list-content">
+
+    </div>
+    <div class="product-list-nav" id="product-list-nav">
+        <a href="#" class="product-list-nav-item active" data-page="1">1</a>
+        <a href="#" class="product-list-nav-item" data-page="2">2</a>
+        <a href="#" class="product-list-nav-item" data-page="3">3</a>
+    </div>
+</div>
 <script>
     /*
     Во время выполнения задания нужно слушать Ария - Король дороги
@@ -19,6 +65,55 @@
     где _page - номер страницы
     а _limit - количество товаров на страницы
     */
+
+    const productListContent = document.querySelector("#product-list .product-list-content")
+    const basicURL = "http://localhost:3000";
+
+    showProductCards(1);
+
+    function showProductCards(page) {
+        const productRequest = fetch(`${basicURL}/products?_page=${page}&_limit=5`);
+
+        productRequest
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error("Список товаров временно недоступен")
+                }
+                return response.json()
+            })
+            .then(result => {
+                const productElements = result.map(product => {
+                const {img, Title, id} = product;
+                const productCard = createProductCard({img, Title});
+                return productCard;
+            }) 
+            productListContent.innerHTML = "";
+            productListContent.append(...productElements);
+            })
+            .catch()
+    }
+
+
+    const productPageNav = document.getElementById("product-list-nav");
+    const productPageNavItem = productPageNav.querySelectorAll(".product-list-nav-item");
+    productPageNavItem.forEach(elem => elem.addEventListener("click", function(e){
+        e.preventDefault();
+        const prevActiveElement = productPageNav.querySelector(".active");
+        prevActiveElement.classList.remove("active");
+        this.classList.add("active");
+
+        const {page} = this.dataset;
+
+        showProductCards(page)
+    } ));
+
+    function createProductCard({img, Title}){        
+        const card = document.createElement("div");
+        card.classList.add("product-card");
+        const cardContent = `<img src="${img}" class="img-fluid" /> <p>${Title}</p>`
+        card.insertAdjacentHTML("beforeend", cardContent);
+        return card;
+    }        
 </script>
 </body>
 </html>
